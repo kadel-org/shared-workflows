@@ -3,9 +3,13 @@ name: Issue Management
 on:
   workflow_call:
 
+env:
+  PROJECT_ID: 1
+  TRIAGE_LABEL: needs-triage
+
 jobs:
-  manage_issue_labels:
-    name: Label issue
+  manage_incoming_issues:
+    name: Manage incoming issues
     if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
     runs-on: ubuntu-latest
     concurrency: issue_labels-${{ github.event.issue.number }}
@@ -14,22 +18,11 @@ jobs:
     steps:
         - run: |
             # make sure that label exists
-            gh label create -f needs-triage
+            gh label --repo ${{ github.event.issue.organization }}/${{ github.event.issue.repo }} create -f ${{ env.TRIAGE_LABEL }} -c 000000 -d "Issue needs triage"
             # add label to issue
-            gh issue edit $ISSUE --add-label "needs-triage"
+            gh issue --repo ${{ github.event.issue.organization }}/${{ github.event.issue.repo }} edit $ISSUE --add-label ${{ env.TRIAGE_LABEL }}
+            # add issue to the project 
+            gh project item-add ${{ env.PROJECT_ID }} --owner ${{ github.event.issue.organization }} --url $ISSUE 
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             ISSUE: ${{ github.event.issue.html_url }}
-
-  manage_issue_in_project:
-    name: add issue to project
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-    if: ${{ always() }}
-    concurrency: issue_management_in_project-${{ github.event.issue.number }}-${{ github.event.action }}    
-    steps:
-      - run:  gh project item-add 1 --owner kadel-org --url  $ISSUE 
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE: ${{ github.event.issue.html_url }}
