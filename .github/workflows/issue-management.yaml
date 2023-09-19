@@ -3,12 +3,6 @@ name: Issue Management
 on:
   workflow_call:
 
-
-env:
-  ORGANIZATION: kadel-org
-  # See https://github.com/redhat-developer/odo/projects?query=is%3Aopen
-  PROJECT_NUMBER: 1
-
 jobs:
   manage_issue_labels:
     name: Label issue
@@ -24,70 +18,15 @@ jobs:
             ISSUE: ${{ github.event.issue.html_url }}
 
   manage_issue_in_project:
-    name: Manage issue in Project
+    name: add issue to project
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     if: ${{ always() }}
     needs: manage_issue_labels
-    concurrency: issue_management_in_project-${{ github.event.issue.number }}-${{ github.event.action }}
-    env:
-      # Personal Access Token (PAT) to be created with 'repo' and 'project' scopes and be added as repository secret.
-      GITHUB_TOKEN: ${{ secrets.PROJECT_MANAGEMENT_TOKEN }}
+    concurrency: issue_management_in_project-${{ github.event.issue.number }}-${{ github.event.action }}    
     steps:
-
-    - name: Get project data
-      run: |
-        gh api graphql -f query='
-          query($org: String!, $number: Int!) {
-            organization(login: $org){
-              projectV2(number: $number) {
-                id
-                fields(first:20) {
-                  nodes {
-                    ... on ProjectV2Field {
-                      id
-                      name
-                    }
-                    ... on ProjectV2SingleSelectField {
-                      id
-                      name
-                      options {
-                        id
-                        name
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }' -f org=$ORGANIZATION -F number=$PROJECT_NUMBER > project_data.json
-        
-        cat project_data.json
-        
-        echo 'PROJECT_ID='$(jq '.data.organization.projectV2.id' project_data.json) >> $GITHUB_ENV
-        echo 'PRIORITY_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Priority") |.id' project_data.json) >> $GITHUB_ENV
-        echo 'PRIORITY_URGENT_OPTION_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Priority") | .options[] | select(.name | startswith("Urgent")) |.id' project_data.json) >> $GITHUB_ENV
-        echo 'PRIORITY_HIGH_OPTION_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Priority") | .options[] | select(.name | startswith("High")) |.id' project_data.json) >> $GITHUB_ENV
-        echo 'PRIORITY_MEDIUM_OPTION_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Priority") | .options[] | select(.name | startswith("Medium")) |.id' project_data.json) >> $GITHUB_ENV
-        echo 'PRIORITY_LOW_OPTION_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Priority") | .options[] | select(.name | startswith("Low")) |.id' project_data.json) >> $GITHUB_ENV
-
-    - name: Add issue to Project
-      env:
-        ISSUE_ID: ${{ github.event.issue.node_id }}
-      run: |
-        gh api graphql -f query='
-          mutation($project: ID!, $issue: ID!) {
-            addProjectV2ItemById(
-              input: {
-                projectId: $project
-                contentId: $issue
-              }
-            ) {
-              item {
-                id
-              }
-            }
-          }' -f project=${{ env.PROJECT_ID }} -f issue=$ISSUE_ID > project_mutation_result.json
-        
-        cat project_mutation_result.json
-        
-        echo 'ITEM_ID='$(jq '.data.addProjectV2ItemById.item.id' project_mutation_result.json) >> $GITHUB_ENV
+      - run:  gh project item-add 1 --owner monalisa --url  $ISSUE 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.html_url }}
