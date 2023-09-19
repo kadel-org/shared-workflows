@@ -2,6 +2,9 @@ name: Issue Management
 
 on:
   workflow_call:
+    secrets:
+      PROJECT_MANAGEMENT_TOKEN:
+        required: true
 
 env:
   PROJECT_ID: 1
