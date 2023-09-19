@@ -18,9 +18,9 @@ jobs:
     steps:
         - run: |
             # make sure that label exists
-            gh label --repo ${{ github.event.organization }}/${{ github.event.repo }} create -f ${{ env.TRIAGE_LABEL }} -c 000000 -d "Issue needs triage"
+            gh label --repo ${{ github.event.repository.full_name }} create -f ${{ env.TRIAGE_LABEL }} -c 000000 -d "Issue needs triage"
             # add label to issue
-            gh issue --repo ${{ github.event.organization }}/${{ github.event.repo }} edit $ISSUE --add-label ${{ env.TRIAGE_LABEL }}
+            gh issue --repo ${{ github.event.repository.full_name }} edit $ISSUE --add-label ${{ env.TRIAGE_LABEL }}
             # add issue to the project 
             gh project item-add ${{ env.PROJECT_ID }} --owner ${{ github.event.organization }} --url $ISSUE 
           env:
