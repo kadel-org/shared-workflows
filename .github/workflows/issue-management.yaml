@@ -12,7 +12,11 @@ jobs:
     permissions:
       issues: write
     steps:
-        - run: gh issue edit $ISSUE --add-label "needs-triage"
+        - run: |
+            # make sure that label exists
+            gh label create -f needs-triage
+            # add label to issue
+            gh issue edit $ISSUE --add-label "needs-triage"
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             ISSUE: ${{ github.event.issue.html_url }}
