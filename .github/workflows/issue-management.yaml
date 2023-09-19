@@ -24,5 +24,5 @@ jobs:
             # add issue to the project
             gh project item-add ${{ env.PROJECT_ID }} --owner ${{ github.event.organization.login }} --url $ISSUE
           env:
-            GITHUB_TOKEN: ${{ secrets.PROJECT_MANAGEMENT_TOKEN }}
+            GH_TOKEN: ${{ secrets.PROJECT_MANAGEMENT_TOKEN }}
             ISSUE: ${{ github.event.issue.html_url }}
