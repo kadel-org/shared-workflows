@@ -29,7 +29,7 @@ jobs:
     if: ${{ always() }}
     concurrency: issue_management_in_project-${{ github.event.issue.number }}-${{ github.event.action }}    
     steps:
-      - run:  gh project item-add 1 --owner monalisa --url  $ISSUE 
+      - run:  gh project item-add 1 --owner kadel-org --url  $ISSUE 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE: ${{ github.event.issue.html_url }}
