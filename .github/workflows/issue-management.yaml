@@ -23,7 +23,6 @@ jobs:
     permissions:
       issues: write
     if: ${{ always() }}
-    needs: manage_issue_labels
     concurrency: issue_management_in_project-${{ github.event.issue.number }}-${{ github.event.action }}    
     steps:
       - run:  gh project item-add 1 --owner monalisa --url  $ISSUE 
